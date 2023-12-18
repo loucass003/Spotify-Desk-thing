@@ -1,6 +1,6 @@
 
-const clientId = process.env.VITE_SPOTIFY_CLIENT_TOKEN!;
-const redirectUri = process.env.VITE_SPOTIFY_REDIRECT_URI!;
+const clientId = import.meta.env.VITE_SPOTIFY_CLIENT_TOKEN!;
+const redirectUri = import.meta.env.VITE_SPOTIFY_REDIRECT_URI!;
 
 export async function isLoggedIn() {
     console.log('isLogged')

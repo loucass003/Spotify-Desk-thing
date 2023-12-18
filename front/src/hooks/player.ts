@@ -7,7 +7,8 @@ export interface PlayerState {
     progress_ms: number;
     duration_ms: number;
     is_playing: boolean;
-    last_update: number,
+    last_update: number;
+    display: 'light' | 'dark';
     track: {
         id: string,
         name: string;
@@ -48,6 +49,28 @@ export function providePlayer(): PlayerContext {
     const [optimisticState, setOptimisticState] = createSignal<PlayerState>();
     const [pausePoll, setPause] = createSignal<boolean>(false);
 
+    const imageChanged = async (url: string) => {
+        return new Promise((resolve: (value: 'dark' | 'light') => void ) => {
+            const img = new Image();
+            img.src = url;
+            img.crossOrigin = "Anonymous";
+            img.onload = () => {
+                const context = document.createElement('canvas').getContext('2d', { willReadFrequently: true });
+                if (!context) return;
+                context.imageSmoothingEnabled = true;
+                context.drawImage(img, 0, 0, 20, 20);
+                // Average the brightness of the pixels in the image
+                const brightness = Array.from({ length: 20 * 20 }).reduce((curr: number, _, index) => {
+                    const [r, g, b] = context.getImageData(index / 20, index % 20, 1, 1).data.slice(0,3)
+                    return curr + ((r*299)+(g*587)+(b*114))/1000
+                }, 0) / (20 * 20);
+                const displayMode = (brightness > 128) ? 'light' : 'dark';
+                resolve(displayMode)
+            }
+        })
+        
+    }
+
     const updatePlayerStatus = async () => {
         const infos = await fetchCurrentlyPlaying()
         if (infos.error)
@@ -76,20 +99,25 @@ export function providePlayer(): PlayerContext {
             name: infos.item.show.name
         };
 
-        
+        const newState: PlayerState = { 
+            device_id, 
+            is_playing, 
+            last_update: Date.now(), 
+            progress_ms: progress_ms, 
+            duration_ms: duration_ms, 
+            track: { album, id, name, preview_url }, 
+            lyrics,
+            display: currState?.display ?? 'light'
+        };
+
+        if (newState.track.album.images[0].url !== currState?.track.album.images[0].url) {
+            newState.display = await imageChanged(newState.track.album.images[0].url);
+            console.log('display',  newState.display)
+        }
+
 
         batch(
             () => {
-                const newState = ({ 
-                    device_id, 
-                    is_playing, 
-                    last_update: Date.now(), 
-                    progress_ms: progress_ms, 
-                    duration_ms: duration_ms, 
-                    track: { album, id, name, preview_url }, 
-                    lyrics 
-                });
-
                 setState(newState)
                 setOptimisticState(newState)
             }

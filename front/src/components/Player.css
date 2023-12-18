@@ -1,17 +1,39 @@
-.scroll-text {
+/* .scroll-text {
   white-space: nowrap;
   animation-name: scroll-text;
-  animation-duration: 5s;
+  animation-duration: 2s;
   animation-iteration-count: infinite;
   animation-timing-function: linear;
+  transform: translate(100%);
 }
 
 @keyframes scroll-text {
   from {
-    transform: translateX(calc(0px + 100%));
+    transform: translateX(0%);
   }
   to {
-    transform: translateX(calc(0px - 100%));
+    transform: translateX(-50%);
+  }
+} */
+
+.slider {
+  text-overflow: hidden;
+  white-space: nowrap;
+}
+
+.slider > .text {
+  width: fit-content;
+  transform: translate(100%);
+  animation-name: slide;
+  animation-duration: 10s;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+  white-space: nowrap;
+}
+
+@keyframes slide {
+  to {
+    transform: translate(-100%);
   }
 }
 
@@ -19,4 +41,8 @@ input[type="range"] {
   margin: 10px 0;
   width: 100%;
   accent-color: white;
+}
+
+* { 
+  transition: color 0.2s ease-in;
 }
